@@ -118,13 +118,23 @@ extension UIView {
         currentSkeletonConfig = config
         swizzleLayoutSubviews()
         swizzleTraitCollectionDidChange()
-        addDummyDataSourceIfNeeded()
-        subviewsSkeletonables.recursiveSearch(leafBlock: {
-            showSkeletonIfNotActive(skeletonConfig: config)
-        }){ subview in
-            subview.recursiveShowSkeleton(skeletonConfig: config)
+        if let collectionView = self as? UICollectionView {
+            collectionView.prepareSkeleton { [weak self] _ in
+                self?.addDummyDataSourceIfNeeded()
+                self?.subviewsSkeletonables.recursiveSearch(leafBlock: {
+                    self?.showSkeletonIfNotActive(skeletonConfig: config)
+                }){ subview in
+                    subview.recursiveShowSkeleton(skeletonConfig: config)
+                }
+            }
+        } else {
+            addDummyDataSourceIfNeeded()
+            subviewsSkeletonables.recursiveSearch(leafBlock: {
+                showSkeletonIfNotActive(skeletonConfig: config)
+            }){ subview in
+                subview.recursiveShowSkeleton(skeletonConfig: config)
+            }
         }
-
         if let root = root {
             flowDelegate?.didShowSkeletons(rootView: root)
         }
